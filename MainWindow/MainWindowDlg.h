@@ -4,6 +4,13 @@
 
 #pragma once
 
+#include "ImageTab.h"
+#include "RecognizeTab.h"
+
+enum ComponentState {
+	Unlock,
+	Lock
+};
 
 // CMainWindowDlg dialog
 class CMainWindowDlg : public CDialogEx
@@ -31,4 +38,35 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+
+public:
+	CTabCtrl moImageTabCtrl;
+	
+	CSliderCtrl moBrightnessSlider;
+	CSliderCtrl moContrastSlider;
+	
+	CEdit moBrightnessEdit;
+	CEdit moContrastEdit;
+	
+	CComboBox moFrameSizeCombo;
+	CComboBox moAccuracyCombo;
+	CComboBox moThresholdTypeCombo;
+	
+	CButton moStartRecognizeBtn;
+	CButton moSaveDrawingBtn;
+	
+	CStatic moFileNameLabel;
+	CStatic moFileNameStatic;
+	CStatic moFileSizeLabel;
+	CStatic moFileSizeStatic;
+	CStatic moFileDimensionsStatic;
+	CStatic moFileDimensionsLabel;
+
+private:
+	void mvChangeComponentState(ComponentState newStete);
+	void mvChangeVisibleFileInfo(int visibleState);
+public:
+	CProgressCtrl moProgressBar;
+	afx_msg void OnHelpAboutprogram();
+	afx_msg void OnExit();
 };

@@ -96,6 +96,8 @@ BEGIN_MESSAGE_MAP(CMainWindowDlg, CDialogEx)
 	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB_CTRL, &CMainWindowDlg::OnTcnSelchangeTabCtrl)
 	ON_NOTIFY(TCN_SELCHANGING, IDC_TAB_CTRL, &CMainWindowDlg::OnTcnSelchangingTabCtrl)
 	ON_COMMAND(ID_FILE_OPEN, &CMainWindowDlg::OnFileOpen)
+	ON_BN_CLICKED(ID_RECOGNIZE_IMAGE, &CMainWindowDlg::OnBnClickedRecognizeImage)
+	ON_COMMAND(ID_FILE_CLOSE, &CMainWindowDlg::OnFileClose)
 END_MESSAGE_MAP()
 
 
@@ -133,6 +135,7 @@ BOOL CMainWindowDlg::OnInitDialog()
 	// TODO: Add extra initialization here
 	mvInitializeImageTabCtr(mpoImageTab, _T("Image Tab"), mpoImageTab->IDD);
 	mvInitializeImageTabCtr(mpoRecognizeTab, _T("Recognize Tab"), mpoRecognizeTab->IDD);
+	moImageTabCtrl.EnableWindow(ComponentState::Lock);
 
 	moBrightnessSlider.SetRange(-100, 100, TRUE);
 	moBrightnessSlider.SetPos(0);
@@ -145,8 +148,8 @@ BOOL CMainWindowDlg::OnInitDialog()
 	
 	moProgressBar.ShowWindow(SW_HIDE);
 
-	mvChangeComponentState(ComponentState::Unlock);
-	mvChangeVisibleFileInfo(SW_HIDE);
+	mvChangeComponentState(ComponentState::Lock);
+	mvVisibleFileInfo(SW_HIDE);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -200,15 +203,13 @@ HCURSOR CMainWindowDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-const CString CMainWindowDlg::getDefaultFileName() const
+const CString CMainWindowDlg::getDefaultFullFileName() const
 {
-	return defaultFileName;
+	return defaultFullFileFileName;
 }
 
 void CMainWindowDlg::mvChangeComponentState(ComponentState newStete)
 {
-	//moImageTabCtrl.EnableWindow(newStete);
-	
 	moBrightnessSlider.EnableWindow(newStete);
 	moContrastSlider.EnableWindow(newStete);
 	
@@ -223,7 +224,7 @@ void CMainWindowDlg::mvChangeComponentState(ComponentState newStete)
 	moStartRecognizeBtn.EnableWindow(newStete);
 }
 
-void CMainWindowDlg::mvChangeVisibleFileInfo(int visibleState)
+void CMainWindowDlg::mvVisibleFileInfo(int visibleState)
 {
 	moFileNameLabel.ShowWindow(visibleState);
 	moFileNameStatic.ShowWindow(visibleState);
@@ -299,6 +300,54 @@ void CMainWindowDlg::OnFileOpen()
 	int result = fileDialog.DoModal();	
 	if (result == IDOK)	
 	{
-		defaultFileName = fileDialog.GetPathName();
+		defaultFullFileFileName = fileDialog.GetPathName();
+		
+	
+		CImage image;
+		image.Load(defaultFullFileFileName);
+		
+		CRect moTabRect;
+		moImageTabCtrl.GetWindowRect(&moTabRect);
+		int weidth = moTabRect.right - moTabRect.left;
+		int height = moTabRect.bottom - moTabRect.top;
+
+		CString fileDimesions;
+		fileDimesions.Format(_T("%d x %d"), image.GetHeight(), image.GetWidth());
+
+		HBITMAP hBmp = image.Detach();
+		
+		mpoImageTab->moDefaultPicture.SetBitmap(hBmp);
+		mpoImageTab->moDefaultPicture.SetWindowPos(NULL, 5, 10, weidth, height, SWP_NOACTIVATE | SWP_NOZORDER);
+
+		moFileNameLabel.SetWindowTextW(fileDialog.GetFileName());
+		
+		CFileStatus filestatus;
+		CFile::GetStatus(defaultFullFileFileName, filestatus);
+		CString fileSize;
+		fileSize.Format(_T("%I64u kB"), filestatus.m_size /1024);
+		moFileSizeLabel.SetWindowTextW(fileSize);
+		
+		moFileDimensionsLabel.SetWindowTextW(fileDimesions);
+		
+		mvChangeComponentState(ComponentState::Unlock);
+		mvVisibleFileInfo(SW_SHOW);
 	}
+}
+
+
+void CMainWindowDlg::OnBnClickedRecognizeImage()
+{
+	// TODO: Add your control notification handler code here
+
+}
+
+
+void CMainWindowDlg::OnFileClose()
+{
+	HBITMAP hOldBitmap = mpoImageTab->moDefaultPicture.SetBitmap(NULL);
+	if (hOldBitmap)
+		DeleteObject(hOldBitmap);
+
+	mvChangeComponentState(ComponentState::Lock);
+	mvVisibleFileInfo(SW_HIDE);
 }

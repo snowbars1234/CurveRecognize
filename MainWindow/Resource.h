@@ -28,6 +28,7 @@
 #define IDC_STATIC_FILE_NAME            1017
 #define IDC_STATIC_FILE_SIZE            1018
 #define IDC_STATIC_DIMESIONS            1019
+#define IDC_DEFAULT_PICTURE             1020
 #define ID_FILE_OPEN32771               32771
 #define ID_FILE_SAVE32772               32772
 #define ID_FILE_SAVEDRAWING             32773
@@ -40,9 +41,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        135
+#define _APS_NEXT_RESOURCE_VALUE        138
 #define _APS_NEXT_COMMAND_VALUE         32778
-#define _APS_NEXT_CONTROL_VALUE         1020
+#define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

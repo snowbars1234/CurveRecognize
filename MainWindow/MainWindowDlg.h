@@ -8,8 +8,8 @@
 #include "RecognizeTab.h"
 
 enum ComponentState {
-	Unlock,
-	Lock
+	Lock,
+	Unlock
 };
 
 // CMainWindowDlg dialog
@@ -71,12 +71,15 @@ public:
 	CStatic moFileDimensionsStatic;
 	CStatic moFileDimensionsLabel;
 
-	const CString getDefaultFileName( )const;
+	const CString getDefaultFullFileName( )const;
 
 private:
-	CString defaultFileName;
+	CString defaultFullFileFileName;
 	void mvChangeComponentState(ComponentState newStete);
-	void mvChangeVisibleFileInfo(int visibleState);
+	void mvVisibleFileInfo(int visibleState);
 	void mvInitializeImageTabCtr(CDialog* dlgPage, CString tabName, int dialogResurce);
 	
+public:
+	afx_msg void OnBnClickedRecognizeImage();
+	afx_msg void OnFileClose();
 };

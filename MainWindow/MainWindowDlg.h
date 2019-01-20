@@ -18,7 +18,7 @@ class CMainWindowDlg : public CDialogEx
 // Construction
 public:
 	CMainWindowDlg(CWnd* pParent = nullptr);	// standard constructor
-
+	~CMainWindowDlg();
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_MAINWINDOW_DIALOG };
@@ -38,8 +38,17 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+	ImageTab* mpoImageTab;
+	RecognizeTab* mpoRecognizeTab;
 
 public:
+	CProgressCtrl moProgressBar;
+	afx_msg void OnHelpAboutprogram();
+	afx_msg void OnExit();
+	afx_msg void OnTcnSelchangeTabCtrl(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnTcnSelchangingTabCtrl(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnFileOpen();
+
 	CTabCtrl moImageTabCtrl;
 	
 	CSliderCtrl moBrightnessSlider;
@@ -62,11 +71,12 @@ public:
 	CStatic moFileDimensionsStatic;
 	CStatic moFileDimensionsLabel;
 
+	const CString getDefaultFileName( )const;
+
 private:
+	CString defaultFileName;
 	void mvChangeComponentState(ComponentState newStete);
 	void mvChangeVisibleFileInfo(int visibleState);
-public:
-	CProgressCtrl moProgressBar;
-	afx_msg void OnHelpAboutprogram();
-	afx_msg void OnExit();
+	void mvInitializeImageTabCtr(CDialog* dlgPage, CString tabName, int dialogResurce);
+	
 };

@@ -12,9 +12,9 @@ public:
 	virtual ~ImageTab();
 
 // Dialog Data
-#ifdef AFX_DESIGN_TIME
+//#ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_IMAGE_TAB };
-#endif
+//#endif
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support

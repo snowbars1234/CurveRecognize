@@ -53,6 +53,16 @@ CMainWindowDlg::CMainWindowDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_MAINWINDOW_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	mpoImageTab = new ImageTab;
+	mpoRecognizeTab = new RecognizeTab;
+
+
+}
+
+CMainWindowDlg::~CMainWindowDlg()
+{
+	delete mpoImageTab;
+	delete mpoRecognizeTab;
 }
 
 void CMainWindowDlg::DoDataExchange(CDataExchange* pDX)
@@ -83,6 +93,9 @@ BEGIN_MESSAGE_MAP(CMainWindowDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_COMMAND(ID_HELP_ABOUTPROGRAM, &CMainWindowDlg::OnHelpAboutprogram)
 	ON_COMMAND(ID_EXIT, &CMainWindowDlg::OnExit)
+	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB_CTRL, &CMainWindowDlg::OnTcnSelchangeTabCtrl)
+	ON_NOTIFY(TCN_SELCHANGING, IDC_TAB_CTRL, &CMainWindowDlg::OnTcnSelchangingTabCtrl)
+	ON_COMMAND(ID_FILE_OPEN, &CMainWindowDlg::OnFileOpen)
 END_MESSAGE_MAP()
 
 
@@ -118,30 +131,8 @@ BOOL CMainWindowDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
-	TC_ITEM TabItem;
-	TabItem.mask = TCIF_TEXT;
-	TabItem.pszText = _T("Image");
-	moImageTabCtrl.InsertItem(0, &TabItem);
-	TabItem.pszText = _T("Curve");
-	moImageTabCtrl.InsertItem(1, &TabItem);
-
-	ImageTab* imageTab;
-	imageTab = new ImageTab;
-	TabItem.mask = TCIF_PARAM;
-	TabItem.lParam = (LPARAM)imageTab;
-	moImageTabCtrl.SetItem(0, &TabItem);
-	VERIFY(imageTab->Create(IDD_IMAGE_TAB, &moImageTabCtrl));
-	imageTab->SetWindowPos(NULL, 10, 30, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
-	imageTab->ShowWindow(SW_SHOW);
-
-	RecognizeTab* recognizeTab;
-	recognizeTab = new RecognizeTab;
-	TabItem.mask = TCIF_PARAM;
-	TabItem.lParam = (LPARAM)recognizeTab;
-	moImageTabCtrl.SetItem(0, &TabItem);
-	VERIFY(recognizeTab->Create(IDD_RECOGNIZE_TAB, &moImageTabCtrl));
-	recognizeTab->SetWindowPos(NULL, 10, 30, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
-	recognizeTab->ShowWindow(SW_SHOW);
+	mvInitializeImageTabCtr(mpoImageTab, _T("Image Tab"), mpoImageTab->IDD);
+	mvInitializeImageTabCtr(mpoRecognizeTab, _T("Recognize Tab"), mpoRecognizeTab->IDD);
 
 	moBrightnessSlider.SetRange(-100, 100, TRUE);
 	moBrightnessSlider.SetPos(0);
@@ -209,9 +200,14 @@ HCURSOR CMainWindowDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+const CString CMainWindowDlg::getDefaultFileName() const
+{
+	return defaultFileName;
+}
+
 void CMainWindowDlg::mvChangeComponentState(ComponentState newStete)
 {
-	moImageTabCtrl.EnableWindow(newStete);
+	//moImageTabCtrl.EnableWindow(newStete);
 	
 	moBrightnessSlider.EnableWindow(newStete);
 	moContrastSlider.EnableWindow(newStete);
@@ -237,6 +233,28 @@ void CMainWindowDlg::mvChangeVisibleFileInfo(int visibleState)
 	moFileDimensionsLabel.ShowWindow(visibleState);
 }
 
+void CMainWindowDlg::mvInitializeImageTabCtr(CDialog * dlgPage, CString tabName, int dialogResurce)
+{
+	TC_ITEM tabItem;
+	tabItem.mask = TCIF_TEXT;
+	tabItem.pszText = (LPTSTR)(LPCTSTR)tabName;
+	int curenItemIndex = moImageTabCtrl.GetItemCount();
+	moImageTabCtrl.InsertItem(curenItemIndex, &tabItem );
+	tabItem.lParam = (LPARAM)( dlgPage );
+	moImageTabCtrl.SetItem(curenItemIndex, &tabItem );
+	
+	VERIFY( dlgPage->Create( dialogResurce, &moImageTabCtrl ) );
+
+
+	CRect moTabRect;
+	moImageTabCtrl.GetWindowRect( &moTabRect );
+	int weidth = moTabRect.right - moTabRect.left;
+	int height = moTabRect.bottom - moTabRect.top;
+	
+	dlgPage->SetWindowPos( NULL, 10, 30, weidth, height, SWP_NOSIZE | SWP_NOZORDER );
+	dlgPage->ShowWindow( !curenItemIndex ? SW_SHOW : SW_HIDE);
+}
+
 void CMainWindowDlg::OnHelpAboutprogram()
 {
 	CDialog aDlg(IDD_ABOUTBOX);
@@ -246,4 +264,41 @@ void CMainWindowDlg::OnHelpAboutprogram()
 void CMainWindowDlg::OnExit()
 {
 	DestroyWindow();
+}
+
+
+void CMainWindowDlg::OnTcnSelchangeTabCtrl(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	int curentSelTab = moImageTabCtrl.GetCurSel();
+	TC_ITEM tabItem;
+	tabItem.mask = TCIF_PARAM;
+	moImageTabCtrl.GetItem( curentSelTab, &tabItem );
+	CWnd* pWnd = ( CWnd* )tabItem.lParam;
+	if ( pWnd )
+		pWnd->ShowWindow(SW_SHOW);
+	*pResult = 0;
+}
+
+
+void CMainWindowDlg::OnTcnSelchangingTabCtrl(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	int curentSelTab = moImageTabCtrl.GetCurSel();
+	TC_ITEM tabItem;
+	tabItem.mask = TCIF_PARAM;
+	moImageTabCtrl.GetItem( curentSelTab, &tabItem );
+	CWnd* pWnd = ( CWnd* )tabItem.lParam;
+	if( pWnd )
+	    pWnd->ShowWindow(SW_HIDE);
+	*pResult = 0;
+}
+
+
+void CMainWindowDlg::OnFileOpen()
+{
+	CFileDialog fileDialog(TRUE, _T("png"), NULL, OFN_HIDEREADONLY, _T("PNG Files(*.png)|*.png||"));	//объект класса выбора файла 
+	int result = fileDialog.DoModal();	
+	if (result == IDOK)	
+	{
+		defaultFileName = fileDialog.GetPathName();
+	}
 }

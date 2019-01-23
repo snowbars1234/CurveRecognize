@@ -98,6 +98,9 @@ BEGIN_MESSAGE_MAP(CMainWindowDlg, CDialogEx)
 	ON_COMMAND(ID_FILE_OPEN, &CMainWindowDlg::OnFileOpen)
 	ON_BN_CLICKED(ID_RECOGNIZE_IMAGE, &CMainWindowDlg::OnBnClickedRecognizeImage)
 	ON_COMMAND(ID_FILE_CLOSE, &CMainWindowDlg::OnFileClose)
+	ON_WM_HSCROLL()
+	ON_EN_CHANGE(IDC_BRIGHTNESS_EDIT, &CMainWindowDlg::OnEnChangeBrightnessEdit)
+	ON_EN_CHANGE(IDC_CONTRAST_EDIT, &CMainWindowDlg::OnEnChangeContrastEdit)
 END_MESSAGE_MAP()
 
 
@@ -252,8 +255,41 @@ void CMainWindowDlg::mvInitializeImageTabCtr(CDialog * dlgPage, CString tabName,
 	int weidth = moTabRect.right - moTabRect.left;
 	int height = moTabRect.bottom - moTabRect.top;
 	
-	dlgPage->SetWindowPos( NULL, 10, 30, weidth, height, SWP_NOSIZE | SWP_NOZORDER );
+	dlgPage->SetWindowPos( NULL, 0, 21, weidth, height, SWP_NOSIZE | SWP_NOZORDER );
 	dlgPage->ShowWindow( !curenItemIndex ? SW_SHOW : SW_HIDE);
+}
+
+HRESULT CMainWindowDlg::syncronizedEditAndSlider(CSliderCtrl* poSliderCtrl, CString newPos)
+{
+	if (newPos.SpanIncluding(_T("-0123456789")) == newPos)
+	{
+		int intNewPos = _wtoi(newPos);
+		if (intNewPos != poSliderCtrl->GetPos())
+		{
+			bool exceededRange = false;
+			if (intNewPos < poSliderCtrl->GetRangeMin())
+			{
+				intNewPos = poSliderCtrl->GetRangeMin();
+				exceededRange = true;
+			}
+			else if (intNewPos > poSliderCtrl->GetRangeMax())
+			{
+				intNewPos = poSliderCtrl->GetRangeMax();
+				exceededRange = true;
+
+			}
+
+			poSliderCtrl->SetPos(intNewPos);
+			if (exceededRange)
+				return S_FALSE;
+		}
+		return S_OK;
+	}
+	else
+	{
+		return E_FAIL;
+	}
+
 }
 
 void CMainWindowDlg::OnHelpAboutprogram()
@@ -350,4 +386,60 @@ void CMainWindowDlg::OnFileClose()
 
 	mvChangeComponentState(ComponentState::Lock);
 	mvVisibleFileInfo(SW_HIDE);
+}
+
+
+void CMainWindowDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+{
+	// TODO: Add your message handler code here and/or call default
+	CString sliderPos;
+	sliderPos.Format(_T("%d"), moBrightnessSlider.GetPos());
+	moBrightnessEdit.SetWindowTextW(sliderPos);
+	sliderPos.Format(_T("%d"), moContrastSlider.GetPos());
+	moContrastEdit.SetWindowTextW(sliderPos);
+	CDialogEx::OnHScroll(nSBCode, nPos, pScrollBar);
+}
+
+
+void CMainWindowDlg::OnEnChangeBrightnessEdit()
+{
+	CString brightness;
+	moBrightnessEdit.GetWindowText(brightness);
+	HRESULT hRes = syncronizedEditAndSlider(&moBrightnessSlider, brightness);
+	if (SUCCEEDED(hRes))
+	{
+		if (hRes)
+		{
+			brightness.Format(_T("%d"), moBrightnessSlider.GetPos());
+			moBrightnessEdit.SetWindowText(brightness);
+			MessageBox(_T("Values exceed limit"), _T("Warning"), MB_OK);
+		}
+	}
+	else
+	{
+		moBrightnessEdit.SetWindowText(_T("0"));
+		MessageBox(_T("You have entered no valid data. Use only integer numbers "), _T("Error"), MB_OK);
+	}
+}
+
+
+void CMainWindowDlg::OnEnChangeContrastEdit()
+{
+	CString contrast;
+	moContrastEdit.GetWindowText(contrast);
+	HRESULT hRes = syncronizedEditAndSlider(&moContrastSlider, contrast);
+	if (SUCCEEDED(hRes))
+	{
+		if (hRes)
+		{
+			contrast.Format(_T("%d"), moContrastSlider.GetPos());
+			moContrastEdit.SetWindowText(contrast);
+			MessageBox(_T("Values exceed limit"), _T("Warning"), MB_OK);
+		}
+	}
+	else
+	{
+		moContrastEdit.SetWindowText(_T("0"));
+		MessageBox(_T("You have entered no valid data. Use only integer numbers "), _T("Error"), MB_OK);
+	}
 }

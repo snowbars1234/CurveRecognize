@@ -78,8 +78,12 @@ private:
 	void mvChangeComponentState(ComponentState newStete);
 	void mvVisibleFileInfo(int visibleState);
 	void mvInitializeImageTabCtr(CDialog* dlgPage, CString tabName, int dialogResurce);
+	HRESULT syncronizedEditAndSlider(CSliderCtrl* poSliderCtrl, CString newPos);
 	
 public:
 	afx_msg void OnBnClickedRecognizeImage();
 	afx_msg void OnFileClose();
+	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	afx_msg void OnEnChangeBrightnessEdit();
+	afx_msg void OnEnChangeContrastEdit();
 };
